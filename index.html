@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>Three.js test</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+
+    font-family:Arial, Helvetica, sans-serif;
+    background:#f5f6fa;
+    color:#222;
+
+}
+
+header{
+
+    width:100%;
+    background:white;
+    box-shadow:0 3px 10px rgba(0,0,0,.08);
+    padding:60px;
+
+}
+
+.container{
+
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:50px;
+
+}
+
+.left{
+
+    flex:1;
+
+}
+
+.left h1{
+
+    font-size:64px;
+    margin-bottom:20px;
+    color:#2c3e50;
+
+}
+
+.left p{
+
+    font-size:20px;
+    line-height:1.8;
+    color:#555;
+
+}
+
+.right{
+
+    width:600px;
+    height:500px;
+
+    border-radius:20px;
+    overflow:hidden;
+
+    background:white;
+
+    box-shadow:0 10px 30px rgba(0,0,0,.15);
+
+}
+
+canvas{
+
+    display:block;
+
+}
+
+section{
+
+    max-width:1200px;
+    margin:auto;
+    padding:60px;
+
+}
+
+section h2{
+
+    margin-bottom:20px;
+
+}
+
+</style>
+
+
+<script type="importmap">
+{
+  "imports": {
+    "three":"https://unpkg.com/three@0.180.0/build/three.module.js",
+    "three/addons/":"https://unpkg.com/three@0.180.0/examples/jsm/"
+  }
+}
+</script>
+
+</head>
+<body>
+
+
+<header>
+
+<div class="container">
+
+<div class="left">
+
+<h1>Three.js test</h1>
+
+<p>
+
+Blenderで作成したGLBモデルをThree.jsで表示しています。<br>
+
+右側のモデルはドラッグで自由に回転できます。
+
+</p>
+
+</div>
+
+<div class="right" id="viewer"></div>
+
+</div>
+
+</header>
+
+
+<section>
+
+<h2>About</h2>
+
+<p>
+
+ここにホームページ本文を書いていきます。
+
+Three.jsはHTMLの一部として表示できるため、
+
+普通のWebページと3Dコンテンツを自然に組み合わせられます。
+
+</p>
+
+</section>
+
+<script type="module">
+
+import * as THREE from "three";
+import {OrbitControls} from "three/addons/controls/OrbitControls.js";
+import {GLTFLoader} from "three/addons/loaders/GLTFLoader.js";
+
+const viewer=document.getElementById("viewer");
+
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0x00a0a0);
+
+const camera=new THREE.PerspectiveCamera(
+
+45,
+
+viewer.clientWidth/viewer.clientHeight,
+
+0.1,
+
+1000
+
+);
+
+const renderer=new THREE.WebGLRenderer({
+
+ antialias:true
+
+});
+
+renderer.setPixelRatio(window.devicePixelRatio);
+
+renderer.setSize(
+
+viewer.clientWidth*1,
+
+viewer.clientHeight*1
+
+);
+
+viewer.appendChild(renderer.domElement);
+
+const controls=new OrbitControls(
+
+camera,
+
+renderer.domElement
+
+);
+
+controls.enableDamping=true;
+
+scene.add(new THREE.AmbientLight(0xffffff,1.5));
+
+const light=new THREE.DirectionalLight(0xffffff,10);
+
+light.position.set(5,5,5);
+
+scene.add(light);
+
+const loader=new GLTFLoader();
+
+loader.load("a.glb",(gltf)=>{
+
+const model=gltf.scene;
+
+scene.add(model);
+
+const box=new THREE.Box3().setFromObject(model);
+
+const center=box.getCenter(new THREE.Vector3());
+
+model.position.sub(center);
+
+const size=box.getSize(new THREE.Vector3()).length();
+
+camera.position.set(
+
+0,
+
+size*0.5,
+
+size*1.8
+
+);
+
+controls.target.set(0,0,0);
+
+controls.update();
+
+});
+
+window.addEventListener("resize",()=>{
+
+renderer.setSize(
+
+viewer.clientWidth,
+
+viewer.clientHeight
+
+);
+
+camera.aspect=
+
+viewer.clientWidth/
+
+viewer.clientHeight;
+
+camera.updateProjectionMatrix();
+
+});
+
+function animate(){
+
+requestAnimationFrame(animate);
+
+controls.update();
+
+renderer.render(scene,camera);
+
+}
+
+animate();
+
+</script>
+
+</body>
+</html>
