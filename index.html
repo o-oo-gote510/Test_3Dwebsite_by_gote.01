@@ -102,7 +102,7 @@ section h2{
   "imports": {
     "three":"https://unpkg.com/three@0.180.0/build/three.module.js",
     "three/addons/":"https://unpkg.com/three@0.180.0/examples/jsm/"
-  }
+}
 }
 </script>
 
@@ -157,122 +157,57 @@ import * as THREE from "three";
 import {OrbitControls} from "three/addons/controls/OrbitControls.js";
 import {GLTFLoader} from "three/addons/loaders/GLTFLoader.js";
 
-const viewer=document.getElementById("viewer");
+//「three.jsの描画領域を表示するdiv要素を取得」
+const viewer=document.getElementById("viewer");//three.jsの描画領域を表示するdiv要素を取得 
 
-const scene=new THREE.Scene();
-scene.background=new THREE.Color(0x00a0a0);
+//「描画装置を作成」
+const renderer=new THREE.WebGLRenderer({antialias:true});//レンダラーを作成
+viewer.appendChild(renderer.domElement);//レンダラーの描画領域をdiv要素に追加
+renderer.setPixelRatio(window.devicePixelRatio);//レンダラーのピクセル比を設定
+renderer.setSize(viewer.clientWidth*1,viewer.clientHeight*1);//レンダラーの描画サイズを設定
 
-const camera=new THREE.PerspectiveCamera(
 
-45,
+/*オブジェクトの配置*/
 
-viewer.clientWidth/viewer.clientHeight,
+//「シーン(ワールド)を作成」
+const scene=new THREE.Scene();//three.jsのシーンを作成
+scene.background=new THREE.Color(0x00a0a0);//シーンの背景色を設定
 
-0.1,
+//「カメラの作成・追加」
+const camera=new THREE.PerspectiveCamera(45,viewer.clientWidth/viewer.clientHeight,0.1,1000);//カメラを作成
+camera.position.set(0,20,50);//カメラの位置を設定
+const controls=new OrbitControls(camera,renderer.domElement);//orbitControlsを作成
+controls.enableDamping=true;//カメラの制御に慣性をつける
 
-1000
-
-);
-
-const renderer=new THREE.WebGLRenderer({
-
- antialias:true
-
-});
-
-renderer.setPixelRatio(window.devicePixelRatio);
-
-renderer.setSize(
-
-viewer.clientWidth*1,
-
-viewer.clientHeight*1
-
-);
-
-viewer.appendChild(renderer.domElement);
-
-const controls=new OrbitControls(
-
-camera,
-
-renderer.domElement
-
-);
-
-controls.enableDamping=true;
-
-scene.add(new THREE.AmbientLight(0xffffff,1.5));
-
-const light=new THREE.DirectionalLight(0xffffff,10);
-
+//「ライトの作成・追加」
+const light=new THREE.DirectionalLight(0xffffff,10);//光源を作成
 light.position.set(5,5,5);
+scene.add(light);//シーンに光源を追加
 
-scene.add(light);
-
+//「GLBモデルを読み込むためのGLTFLoaderを作成」
 const loader=new GLTFLoader();
-
 loader.load("a.glb",(gltf)=>{
-
-const model=gltf.scene;
-
-scene.add(model);
-
-const box=new THREE.Box3().setFromObject(model);
-
-const center=box.getCenter(new THREE.Vector3());
-
-model.position.sub(center);
-
-const size=box.getSize(new THREE.Vector3()).length();
-
-camera.position.set(
-
-0,
-
-size*0.5,
-
-size*1.8
-
-);
-
-controls.target.set(0,0,0);
-
-controls.update();
-
-});
-
-window.addEventListener("resize",()=>{
-
-renderer.setSize(
-
-viewer.clientWidth,
-
-viewer.clientHeight
-
-);
-
-camera.aspect=
-
-viewer.clientWidth/
-
-viewer.clientHeight;
-
-camera.updateProjectionMatrix();
-
-});
-
-function animate(){
-
-requestAnimationFrame(animate);
-
-controls.update();
-
-renderer.render(scene,camera);
-
+const model=gltf.scene;//GLBモデルを読み込む
+scene.add(model);//シーンにGLBモデルを追加
 }
+);
 
-animate();
+/*オブジェクトの配置システム処理*/
+//「リアルタイムで描画」
+function animate(){
+controls.update();//orbitcontrolsのカメラの制御を更新
+renderer.render(scene,camera);//three.jsのシーンのレンダリングを更新
+}
+renderer.setAnimationLoop(animate);//関数animateを継続的に実行
+
+
+//ウィンドウサイズ変化に対応する
+window.addEventListener("resize",()=>{
+renderer.setSize(viewer.clientWidth,viewer.clientHeight);//レンダラーの描画サイズを更新
+camera.aspect=viewer.clientWidth/viewer.clientHeight;//カメラのアスペクト比を更新
+camera.updateProjectionMatrix();//カメラの射影行列を更新
+}
+);
 
 </script>
 
